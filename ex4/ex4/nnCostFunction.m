@@ -62,10 +62,11 @@ Theta2_grad = zeros(size(Theta2));
 %               and Theta2_grad from Part 2.
 %
 
-X = [ones(m, 1), X];
-A1 = sigmoid(X * Theta1');
-A1 = [ones(m, 1), A1];
-H = sigmoid(A1 * Theta2');
+A1 = [ones(m, 1), X];
+A2 = sigmoid(A1 * Theta1');
+A2 = [ones(m, 1), A2];
+A3 = sigmoid(A2 * Theta2');
+H = A3;
 
 yMatrix = zeros(m, num_labels);
 for i = 1 : m
@@ -79,13 +80,24 @@ RegularCost = lambda / (2 * m) * (sum(sum(t1 .^ 2)) + sum(sum(t2 .^ 2)));
 
 J = LogisticCost + RegularCost;
 
+for t = 1 : m
+    A1 = [1 ; X(t, :)'];
+    A2 = [1 ; sigmoid(Theta1 * A1)];
+    A3 = sigmoid(Theta2 * A2);
+    
+    yk = ([1:num_labels]==y(t))';
+    delta_3 = A3 - yk;
+    delta_2 = (Theta2' * delta_3) .* [1 ; sigmoidGradient(Theta1 * A1)];
+    delta_2 = delta_2(2 : end);
+    
+    Theta1_grad = Theta1_grad + delta_2 * A1';
+    Theta2_grad = Theta2_grad + delta_3 * A2';
+end
 
-
-
-
-
-
-
+Theta1_grad = (1/m) * Theta1_grad + (lambda/m) * ...
+    [zeros(size(Theta1, 1), 1) Theta1(:,2:end)];
+Theta2_grad = (1/m) * Theta2_grad + (lambda/m) * ...
+    [zeros(size(Theta2, 1), 1) Theta2(:,2:end)];
 % -------------------------------------------------------------
 
 % =========================================================================
